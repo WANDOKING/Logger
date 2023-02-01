@@ -5,7 +5,7 @@
 #define Crash() Logger::RaiseCrash()
 
 #pragma warning(push)
-#pragma warning(disable: 6011) // raiseCrash ÇÔ¼öÀÇ °æ°í¸¦ ¹«½ÃÇÑ´Ù
+#pragma warning(disable: 6011) // raiseCrash í•¨ìˆ˜ì˜ ê²½ê³ ë¥¼ ë¬´ì‹œí•œë‹¤
 
 class Logger
 {
