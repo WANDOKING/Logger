@@ -1,9 +1,9 @@
-// version 1.0.0
+// version 1.0.1
 #pragma once
 
-#define Log(M) Logger::LogMessage((M), __FILE__, __LINE__)
-#define LogWithWSAError(M) Logger::LogMessageWithWSAError((M), __FILE__, __LINE__)
-#define Crash() Logger::RaiseCrash()
+#define LOG(M) Logger::LogMessage((M), __FILE__, __LINE__)
+#define LOG_WITH_WSAERROR(M) Logger::LogMessageWithWSAError((M), __FILE__, __LINE__)
+#define CRASH() Logger::RaiseCrash()
 
 #pragma warning(push)
 #pragma warning(disable: 6011) // raiseCrash 함수의 경고를 무시한다
