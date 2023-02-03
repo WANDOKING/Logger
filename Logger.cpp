@@ -1,3 +1,4 @@
+// version 1.0.0
 #pragma once
 
 #include <WinSock2.h>
@@ -60,7 +61,6 @@ Logger::Logger()
 	}
 }
 
-// buffer의 사이즈는 반드시 FILE_NAME_MAX_LENGTH 이상일 것
 void Logger::getCurrentTimeInfo(char* buffer)
 {
 	time_t startTime = time(nullptr);
