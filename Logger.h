@@ -1,3 +1,4 @@
+// version 1.0.0
 #pragma once
 
 #define Log(M) Logger::LogMessage((M), __FILE__, __LINE__)
