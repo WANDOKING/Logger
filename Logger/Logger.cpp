@@ -1,4 +1,4 @@
-// version 1.0.2
+// version 1.0.3
 #pragma once
 
 #include <WinSock2.h>
@@ -13,55 +13,64 @@
 Logger Logger::mInstance;
 FILE* Logger::mLogFile;
 
-void Logger::LogMessage(const char* message)
+void Logger::LogMessage(const WCHAR* message)
 {
-	char dayInfo[FILE_NAME_MAX_LENGTH];
+	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
 	getCurrentTimeInfo(dayInfo);
-	fprintf(mLogFile, "[%s] : %s\n", dayInfo, message);
+	fwprintf(mLogFile, L"[%s] : %s\n", dayInfo, message);
 	fflush(mLogFile);
 }
 
-void Logger::LogMessage(const char* message, const char* fileName, int line)
+void Logger::LogMessage(const WCHAR* message, const char* fileName, int line)
 {
-	char dayInfo[FILE_NAME_MAX_LENGTH];
+	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
 	getCurrentTimeInfo(dayInfo);
-	fprintf(mLogFile, "[%s][%s line:%4d] : %s\n", dayInfo, fileName, line, message);
+
+	WCHAR wFileName[FILE_NAME_MAX_LENGTH];
+	MultiByteToWideChar(CP_ACP, MB_COMPOSITE, fileName, -1, wFileName, FILE_NAME_MAX_LENGTH);
+	
+	fwprintf(mLogFile, L"[%s][%s line:%4d] : %s\n", dayInfo, wFileName, line, message);
 	fflush(mLogFile);
 }
 
-void Logger::LogMessageWithWSAError(const char* message)
+void Logger::LogMessageWithWSAError(const WCHAR* message)
 {
-	char dayInfo[FILE_NAME_MAX_LENGTH];
+	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
 	getCurrentTimeInfo(dayInfo);
-	fprintf(mLogFile, "[%s] : %s (Error : %d)\n", dayInfo, message, WSAGetLastError());
+
+	fwprintf(mLogFile, L"[%s] : %s (Error : %d)\n", dayInfo, message, WSAGetLastError());
 	fflush(mLogFile);
 }
 
-void Logger::LogMessageWithWSAError(const char* message, const char* fileName, int line)
+void Logger::LogMessageWithWSAError(const WCHAR* message, const char* fileName, int line)
 {
-	char dayInfo[FILE_NAME_MAX_LENGTH];
+	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
 	getCurrentTimeInfo(dayInfo);
-	fprintf(mLogFile, "[%s][%s line:%4d] : %s (Error : %d)\n", dayInfo, fileName, line, message, WSAGetLastError());
+
+	WCHAR wFileName[FILE_NAME_MAX_LENGTH];
+	MultiByteToWideChar(CP_ACP, MB_COMPOSITE, fileName, -1, wFileName, FILE_NAME_MAX_LENGTH);
+
+	fwprintf(mLogFile, L"[%s][%s line:%4d] : %s (Error : %d)\n", dayInfo, wFileName, line, message, WSAGetLastError());
 	fflush(mLogFile);
 }
 
 Logger::Logger()
 {
 	// get logFileName
-	char dayInfo[FILE_NAME_MAX_LENGTH];
-	char logFileName[FILE_NAME_MAX_LENGTH];
+	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
+	WCHAR logFileName[FILE_NAME_MAX_LENGTH];
 
 	getCurrentTimeInfo(dayInfo);
-	sprintf_s(logFileName, FILE_NAME_MAX_LENGTH, "Log_%s.txt", dayInfo);
+	wsprintf(logFileName, L"Log_%s.txt", dayInfo);
 
-	if (fopen_s(&mLogFile, logFileName, "w") == EINVAL)
+	if (_wfopen_s(&mLogFile, logFileName, L"w") == EINVAL)
 	{
 		assert(false);
 		RaiseCrash();
 	}
 }
 
-void Logger::getCurrentTimeInfo(char* buffer)
+void Logger::getCurrentTimeInfo(WCHAR* buffer)
 {
 	time_t startTime = time(nullptr);
 	tm localTime;
@@ -73,10 +82,16 @@ void Logger::getCurrentTimeInfo(char* buffer)
 	int hh = localTime.tm_hour;
 	int mm = localTime.tm_min;
 	int ss = localTime.tm_sec;
-	sprintf_s(buffer, FILE_NAME_MAX_LENGTH, "%04d%02d%02d_%02d%02d%02d", YYYY, MM, DD, hh, mm, ss);
+	wsprintf(buffer, L"%04d%02d%02d_%02d%02d%02d", YYYY, MM, DD, hh, mm, ss);
 }
 
 Logger::~Logger()
 {
 	fclose(mLogFile);
+}
+
+void Logger::RaiseCrash()
+{
+	int* nullPointer = 0x00000000;
+	*nullPointer = 0;
 }

@@ -1,4 +1,4 @@
-// version 1.0.2
+// version 1.0.3
 #pragma once
 
 #define LOG(M) Logger::LogMessage((M), __FILE__, __LINE__)
@@ -11,22 +11,18 @@
 class Logger
 {
 public:
-	static void LogMessage(const char* message);
-	static void LogMessage(const char* message, const char* fileName, int line);
-	static void LogMessageWithWSAError(const char* message);
-	static void LogMessageWithWSAError(const char* message, const char* fileName, int line);
+	static void LogMessage(const WCHAR* message);
+	static void LogMessage(const WCHAR* message, const char* fileName, int line);
+	static void LogMessageWithWSAError(const WCHAR* message);
+	static void LogMessageWithWSAError(const WCHAR* message, const char* fileName, int line);
 
 	// intentional crash
-	inline static void RaiseCrash()
-	{
-		int* nullPointer = 0x00000000;
-		*nullPointer = 0;
-	}
+	static void RaiseCrash();
 private:
 	Logger();
 	~Logger();
 
-	static void getCurrentTimeInfo(char* buffer);
+	static void getCurrentTimeInfo(WCHAR* buffer);
 
 	static Logger mInstance;
 	static FILE* mLogFile;

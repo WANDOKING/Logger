@@ -7,48 +7,17 @@
 
 #include "Logger.h"
 
-BOOL PrintDomainToIps(const WCHAR* domain)
-{
-	ADDRINFOW* addrInfo;
-	if (GetAddrInfo(domain, L"0", nullptr, &addrInfo) != 0)
-	{
-		LOG_WITH_WSAERROR("GetAddrInfo() error!");
-		CRASH();
-	}
-
-	ADDRINFOW* traversal = addrInfo;
-	while (traversal != nullptr)
-	{
-		SOCKADDR_IN* sockAddr = (SOCKADDR_IN*)traversal->ai_addr;
-
-		WCHAR buffer[16] = { 0 };
-		if (InetNtop(AF_INET, &sockAddr->sin_addr, buffer, 16) == nullptr)
-		{
-			LOG_WITH_WSAERROR("InetNtop() error!");
-			CRASH();
-		}
-
-		std::wcout << buffer << '\n';
-
-		traversal = traversal->ai_next;
-	}
-
-	FreeAddrInfo(addrInfo);
-
-	return TRUE;
-}
-
 int main(void)
 {
-	WSADATA wsaData;
+	setlocale(LC_ALL, "KOREAN");
 
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-	{
-		LOG_WITH_WSAERROR("WSAStartup() error!");
-		CRASH();
-	}
+	LOG(L"hi");
+	LOG(L"OK");
 
-	PrintDomainToIps(L"gosoasgle.com");
+	LOG(L"why are you crying");
+	LOG(L"한글 로그");
 
-	WSACleanup();
+	LOG_WITH_WSAERROR(L"log with wsaerror");
+
+	CRASH();
 }
