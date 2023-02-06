@@ -2,6 +2,7 @@
 #pragma once
 
 #include <WinSock2.h>
+#include <Windows.h>
 #include <iostream>
 #include <time.h>
 #include <cassert>
@@ -54,6 +55,21 @@ void Logger::LogMessageWithWSAError(const WCHAR* message, const char* fileName, 
 	fflush(mLogFile);
 }
 
+void Logger::getCurrentTimeInfo(WCHAR* buffer)
+{
+	time_t startTime = time(nullptr);
+	tm localTime;
+	localtime_s(&localTime, &startTime);
+
+	int YYYY = localTime.tm_year + 1900;
+	int MM = localTime.tm_mon + 1;
+	int DD = localTime.tm_mday;
+	int hh = localTime.tm_hour;
+	int mm = localTime.tm_min;
+	int ss = localTime.tm_sec;
+	wsprintf(buffer, L"%04d%02d%02d_%02d%02d%02d", YYYY, MM, DD, hh, mm, ss);
+}
+
 Logger::Logger()
 {
 	// get logFileName
@@ -70,28 +86,18 @@ Logger::Logger()
 	}
 }
 
-void Logger::getCurrentTimeInfo(WCHAR* buffer)
-{
-	time_t startTime = time(nullptr);
-	tm localTime;
-	localtime_s(&localTime, &startTime);
-
-	int YYYY = localTime.tm_year + 1900;
-	int MM = localTime.tm_mon + 1;
-	int DD = localTime.tm_mday;
-	int hh = localTime.tm_hour;
-	int mm = localTime.tm_min;
-	int ss = localTime.tm_sec;
-	wsprintf(buffer, L"%04d%02d%02d_%02d%02d%02d", YYYY, MM, DD, hh, mm, ss);
-}
-
 Logger::~Logger()
 {
 	fclose(mLogFile);
 }
+
+#pragma warning(push)
+#pragma warning(disable: 6011)
 
 void Logger::RaiseCrash()
 {
 	int* nullPointer = 0x00000000;
 	*nullPointer = 0;
 }
+
+#pragma warning(pop)

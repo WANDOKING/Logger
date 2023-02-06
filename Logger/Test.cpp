@@ -18,6 +18,4 @@ int main(void)
 	LOG(L"한글 로그");
 
 	LOG_WITH_WSAERROR(L"log with wsaerror");
-
-	CRASH();
 }
