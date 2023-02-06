@@ -1,15 +1,17 @@
-// version 1.0.3
+// version 1.0.4
 #pragma once
+#pragma comment(lib, "pathcch.lib")
 
 #include <WinSock2.h>
 #include <Windows.h>
 #include <iostream>
 #include <time.h>
 #include <cassert>
+#include <PathCch.h>
 
 #include "Logger.h"
 
-#define FILE_NAME_MAX_LENGTH 128
+#define FILE_NAME_MAX_LENGTH 1024
 
 Logger Logger::mInstance;
 FILE* Logger::mLogFile;
@@ -72,15 +74,32 @@ void Logger::getCurrentTimeInfo(WCHAR* buffer)
 
 Logger::Logger()
 {
+	WCHAR buffer[FILE_NAME_MAX_LENGTH];
+
 	// get logFileName
-	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
-	WCHAR logFileName[FILE_NAME_MAX_LENGTH];
-
+	WCHAR dayInfo[16];
 	getCurrentTimeInfo(dayInfo);
-	wsprintf(logFileName, L"Log_%s.txt", dayInfo);
 
-	if (_wfopen_s(&mLogFile, logFileName, L"w") == EINVAL)
+	// get process path
+	DWORD dwPID = GetCurrentProcessId();
+	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwPID);
+	WCHAR processPath[MAX_PATH];
+	if (GetModuleFileNameW(nullptr, processPath, MAX_PATH) == 0)
 	{
+		CloseHandle(hProcess);
+		exit(1);
+	}
+	CloseHandle(hProcess);
+
+	wsprintfW(buffer, L"%s Log", processPath);
+	CreateDirectoryW(buffer, nullptr); // create directory
+
+	wsprintfW(processPath, L"%s", buffer); // path update (log file directory)
+	wsprintfW(buffer, L"%s\\Log_%s.txt", processPath, dayInfo); // log file path
+
+	if (_wfopen_s(&mLogFile, buffer, L"w") == EINVAL)
+	{
+		printf("%d\n", GetLastError());
 		assert(false);
 		RaiseCrash();
 	}

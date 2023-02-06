@@ -1,11 +1,9 @@
-// version 1.0.3
+// version 1.0.4
 #pragma once
 
 #define LOG(M) Logger::LogMessage((M), __FILE__, __LINE__)
 #define LOG_WITH_WSAERROR(M) Logger::LogMessageWithWSAError((M), __FILE__, __LINE__)
 #define CRASH() Logger::RaiseCrash()
-
-
 
 class Logger
 {
