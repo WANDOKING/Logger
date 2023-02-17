@@ -1,4 +1,4 @@
-// version 1.1.0
+// version 1.2.0
 #pragma once
 
 #define LOG(M) Logger::LogMessage((M), __FILE__, __LINE__)
@@ -6,6 +6,7 @@
 #define CRASH() Logger::RaiseCrash()
 #define ASSERT_WITH_MESSAGE(C, M) Logger::Assert((C), (M), __FILE__, __LINE__)
 #define ASSERT(C) Logger::Assert((C), L"Assertion Failed!", __FILE__, __LINE__)
+#define LOGF Logger::LogF
 
 class Logger
 {
@@ -16,6 +17,9 @@ public:
 	static void LogMessageWithWSAError(const WCHAR* message, const char* fileName, int line);
 	static void Assert(bool condition, const WCHAR* message);
 	static void Assert(bool condition, const WCHAR* message, const char* fileName, int line);
+
+	// formatted string Log
+	static void LogF(const WCHAR* formatMessage, ...);
 
 	// intentional crash
 	static void RaiseCrash();

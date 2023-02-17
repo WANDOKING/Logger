@@ -11,6 +11,9 @@ int main(void)
 {
 	setlocale(LC_ALL, "KOREAN");
 
+	LOGF(L"%s : %d + %d = %d", L"math", 1, 3, 1 + 3);
+	LOGF(L"my name is %s, and i am %d years old.", L"kim good", 27);
+
 	LOG(L"hi");
 	LOG(L"OK");
 
@@ -19,8 +22,8 @@ int main(void)
 
 	LOG_WITH_WSAERROR(L"log with wsaerror");
 
-	{
-		int a = 5;
-		ASSERT_WITH_MESSAGE(a < 0, L"뭔가 이상하다 Assetion Failed");
-	}
+	//{
+	//	int a = 5;
+	//	ASSERT_WITH_MESSAGE(a < 0, L"뭔가 이상하다 Assetion Failed");
+	//}
 }

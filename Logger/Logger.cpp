@@ -1,4 +1,4 @@
-// version 1.1.0
+// version 1.2.0
 #pragma once
 #pragma comment(lib, "pathcch.lib")
 
@@ -141,4 +141,21 @@ void Logger::Assert(bool condition, const WCHAR* message, const char* fileName, 
 
 	LogMessage(message, fileName, line);
 	RaiseCrash();
+}
+
+void Logger::LogF(const WCHAR* formatMessage, ...)
+{
+	va_list ap;
+	va_start(ap, formatMessage);
+	
+	WCHAR dayInfo[FILE_NAME_MAX_LENGTH];
+	getCurrentTimeInfo(dayInfo);
+
+	fwprintf(mLogFile, L"[%s] : ", dayInfo);
+	vfwprintf(mLogFile, formatMessage, ap);
+	fwprintf(mLogFile, L"\n");
+
+	fflush(mLogFile);
+
+	va_end(ap);
 }
