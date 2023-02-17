@@ -18,4 +18,9 @@ int main(void)
 	LOG(L"한글 로그");
 
 	LOG_WITH_WSAERROR(L"log with wsaerror");
+
+	{
+		int a = 5;
+		ASSERT_WITH_MESSAGE(a < 0, L"뭔가 이상하다 Assetion Failed");
+	}
 }

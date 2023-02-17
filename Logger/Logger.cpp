@@ -1,4 +1,4 @@
-// version 1.0.4
+// version 1.1.0
 #pragma once
 #pragma comment(lib, "pathcch.lib")
 
@@ -120,3 +120,25 @@ void Logger::RaiseCrash()
 }
 
 #pragma warning(pop)
+
+void Logger::Assert(bool condition, const WCHAR* message)
+{
+	if (condition == true)
+	{
+		return;
+	}
+
+	LogMessage(message);
+	RaiseCrash();
+}
+
+void Logger::Assert(bool condition, const WCHAR* message, const char* fileName, int line)
+{
+	if (condition == true)
+	{
+		return;
+	}
+
+	LogMessage(message, fileName, line);
+	RaiseCrash();
+}
