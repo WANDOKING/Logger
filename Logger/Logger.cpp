@@ -1,13 +1,13 @@
-// version 1.2.0
+// version 1.2.1
 #pragma once
+
+#pragma comment(lib, "ws2_32")
 #pragma comment(lib, "pathcch.lib")
 
 #include <WinSock2.h>
-#include <Windows.h>
-#include <iostream>
 #include <time.h>
-#include <cassert>
 #include <PathCch.h>
+#include <Windows.h>
 
 #include "Logger.h"
 
@@ -100,7 +100,6 @@ Logger::Logger()
 	if (_wfopen_s(&mLogFile, buffer, L"w") == EINVAL)
 	{
 		printf("%d\n", GetLastError());
-		assert(false);
 		RaiseCrash();
 	}
 }

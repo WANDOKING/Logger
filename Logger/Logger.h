@@ -1,5 +1,9 @@
-// version 1.2.0
+// version 1.2.1
 #pragma once
+
+#include <iostream>
+
+typedef wchar_t WCHAR;
 
 #define LOG(M) Logger::LogMessage((M), __FILE__, __LINE__)
 #define LOG_WITH_WSAERROR(M) Logger::LogMessageWithWSAError((M), __FILE__, __LINE__)
