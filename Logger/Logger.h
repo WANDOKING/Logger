@@ -1,4 +1,4 @@
-// version 2.0.0
+// version 3.0.0
 #pragma once
 
 #include <iostream>
@@ -6,34 +6,48 @@
 typedef wchar_t WCHAR;
 typedef void* HANDLE;
 
-/************ recommend call this macros instead of Logger::functions ************/ 
-#define LOG(M) Logger::LogMessage((M), __FILEW__, __LINE__)
-
-#define LOG_WITH_WSAERROR(M) do {                 \
-	Logger::LogMessage((M), __FILEW__, __LINE__); \
-	Logger::LogWSAError();                        \
-} while (0)                                       \
-
-#define CRASH() Logger::RaiseCrash()
-
-#define ASSERT_WITH_MESSAGE(C, M) Logger::Assert((C), (M), __FILEW__, __LINE__)
-
-#define ASSERT(C) Logger::Assert((C), L"Assertion Failed!", __FILEW__, __LINE__)
-
+/************ recommend call this macros instead of Logger::functions ************/
+#define LOG(Level, Log) Logger::LogMessage(Level, Log)
+#define LOG_WITH_LINE(Level, Log) Logger::LogMessage((Level), (Log), __FILEW__, __LINE__)
 #define LOGF Logger::LogF
+
+#define ASSERT_LIVE(Condition, Message) Logger::Assert((Condition), (Message), __FILEW__, __LINE__)
 /*********************************************************************************/
+
+enum class ELogLevel
+{
+	Debug = 1,
+	Error = 2,
+	System = 10,
+	Assert,
+};
 
 class Logger
 {
 public:
-	static void LogWSAError();
-	static void LogMessage(const WCHAR* message);
-	static void LogMessage(const WCHAR* message, const WCHAR* fileName, int line);
-	static void Assert(bool condition, const WCHAR* message);
-	static void Assert(bool condition, const WCHAR* message, const WCHAR* fileName, int line);
-	
-	// formatted string Log
-	static void LogF(const WCHAR* formatMessage, ...);
+	inline static void SetLogLevel(ELogLevel logLevel) { mLogLevel = logLevel; }
+
+	static void LogMessage(ELogLevel logLevel, const WCHAR* message);
+	static void LogMessage(ELogLevel logLevel, const WCHAR* message, const WCHAR* fileName, int line);
+	static void LogF(ELogLevel logLevel, const WCHAR* formatMessage, ...);
+
+	inline static void Assert(bool condition, const WCHAR* message)
+	{
+		if (!condition)
+		{
+			LogMessage(ELogLevel::Assert, message);
+			RaiseCrash();
+		}
+	}
+
+	inline static void Assert(bool condition, const WCHAR* message, const WCHAR* fileName, int line)
+	{
+		if (!condition)
+		{
+			LogMessage(ELogLevel::Assert, message, fileName, line);
+			RaiseCrash();
+		}
+	}
 
 	// intentional crash
 	static void RaiseCrash();
@@ -41,8 +55,9 @@ private:
 	Logger();
 	~Logger();
 
-	static void getCurrentTimeInfo(WCHAR* buffer, size_t bufferSize);
+	static void getCurrentTimeInfo(WCHAR* outBuffer);
 
 	static Logger mInstance;
 	static HANDLE mhLogFile;
+	static ELogLevel mLogLevel;
 };

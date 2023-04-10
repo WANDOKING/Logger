@@ -1,160 +1,87 @@
-// version 2.0.0
-#pragma once
-
-#pragma comment(lib, "ws2_32")
+// version 3.0.0
 #pragma comment(lib, "pathcch.lib")
 
-#include <WinSock2.h>
-#include <time.h>
-#include <PathCch.h>
-#include <Windows.h>
-
 #include "Logger.h"
+
+#include <time.h>
+#include <Windows.h>
+#include <strsafe.h>
 
 #define LOG_MESSAGE_MAX_LENGTH 512
 #define DAY_INFO_BUFFER_LENGTH 16
 
 Logger Logger::mInstance;
 HANDLE Logger::mhLogFile;
+ELogLevel Logger::mLogLevel = ELogLevel::Debug;
 
-// recommend call this macro instead of getCurrentTimeInfo()
-#define GET_DAY_INFO(B) getCurrentTimeInfo((B), sizeof((B)))
+// Write log to console macro
+#define LOG_TO_CONSOLE(Log) wprintf(Log)
 
-#define WRITE_LOG(M, L) WriteFile(mhLogFile, (M), (DWORD)((L) * sizeof(WCHAR)), nullptr, nullptr)
+// Write log to log file macro
+#define LOG_TO_FILE(Log) do {																					\
+	if (WriteFile(mhLogFile, (Log), (DWORD)(wcslen(Log) * sizeof(WCHAR)), nullptr, nullptr) == FALSE)			\
+	{																											\
+		wprintf(L"[!] File Logging ERROR - GetLastError() = %d\n", GetLastError());								\
+	}																											\
+																												\
+	FlushFileBuffers(mhLogFile);																				\
+} while (false)																									\
 
-void Logger::LogWSAError()
+void Logger::LogMessage(ELogLevel logLevel, const WCHAR* message)
 {
-	WCHAR log[LOG_MESSAGE_MAX_LENGTH * 2];
-	size_t logLength = 0;
-	bool retWriteFile = false;
-
-	wsprintf(log, L" (ERROR : %6d)", WSAGetLastError());
-
-	logLength = wcslen(log);
-	if (logLength > LOG_MESSAGE_MAX_LENGTH)
+	if (mLogLevel > logLevel)
 	{
-		LogMessage(L"Logging Error : Log Message is too long", __FILEW__, __LINE__);
-		RaiseCrash();
 		return;
 	}
 
-	retWriteFile = WRITE_LOG(log, logLength);
-	if (retWriteFile == false)
-	{
-		wprintf(L"WriteFile() ERROR : %d", GetLastError());
-		RaiseCrash();
-	}
-
-	FlushFileBuffers(mhLogFile);
-}
-
-void Logger::LogMessage(const WCHAR* message)
-{
-	WCHAR log[LOG_MESSAGE_MAX_LENGTH * 2];
+	WCHAR log[LOG_MESSAGE_MAX_LENGTH];
 	WCHAR dayInfo[DAY_INFO_BUFFER_LENGTH];
-	size_t logLength = 0;
-	bool retWriteFile = false;
+	getCurrentTimeInfo(dayInfo);
 
-	GET_DAY_INFO(dayInfo);
-	wsprintf(log, L"\n[%s] : %s", dayInfo, message);
+	StringCchPrintfW(log, LOG_MESSAGE_MAX_LENGTH, L"[%s] : %s\n", dayInfo, message);
 	
-	logLength = wcslen(log);
-	if (logLength > LOG_MESSAGE_MAX_LENGTH)
+	LOG_TO_CONSOLE(log);
+	LOG_TO_FILE(log);
+}
+
+void Logger::LogMessage(ELogLevel logLevel, const WCHAR* message, const WCHAR* fileName, int line)
+{
+	if (mLogLevel > logLevel)
 	{
-		LogMessage(L"Logging Error : Log Message is too long",  __FILEW__, __LINE__);
-		RaiseCrash();
 		return;
 	}
 
-	retWriteFile = WRITE_LOG(log, logLength);
-	if (retWriteFile == false)
-	{
-		wprintf(L"WriteFile() ERROR : %d", GetLastError());
-		RaiseCrash();
-	}
-
-	FlushFileBuffers(mhLogFile);
-}
-
-void Logger::LogMessage(const WCHAR* message, const WCHAR* fileName, int line)
-{
-	WCHAR log[LOG_MESSAGE_MAX_LENGTH * 2];
+	WCHAR log[LOG_MESSAGE_MAX_LENGTH];
 	WCHAR dayInfo[DAY_INFO_BUFFER_LENGTH];
-	size_t logLength = 0;
-	bool retWriteFile = false;
+	getCurrentTimeInfo(dayInfo);
 
-	GET_DAY_INFO(dayInfo);
-	wsprintf(log, L"\n[%s][%s line:%4d] : %s", dayInfo, fileName, line, message);
+	StringCchPrintfW(log, LOG_MESSAGE_MAX_LENGTH, L"[%s][%s line:%4d] : %s\n", dayInfo, fileName, line, message);
 
-	logLength = wcslen(log);
-	if (logLength > LOG_MESSAGE_MAX_LENGTH)
-	{
-		LogMessage(L"Logging Error : Log Message is too long", __FILEW__, __LINE__);
-		RaiseCrash();
-		return;
-	}
-
-	retWriteFile = WRITE_LOG(log, logLength);
-	if (retWriteFile == false)
-	{
-		wprintf(L"WriteFile() ERROR : %d", GetLastError());
-		RaiseCrash();
-	}
-
-	FlushFileBuffers(mhLogFile);
+	LOG_TO_CONSOLE(log);
+	LOG_TO_FILE(log);
 }
 
-void Logger::Assert(bool condition, const WCHAR* message)
+void Logger::LogF(ELogLevel logLevel, const WCHAR* formatMessage, ...)
 {
-	if (condition == true)
+	if (mLogLevel > logLevel)
 	{
 		return;
 	}
 
-	LogMessage(message);
-	LogWSAError();
-	RaiseCrash();
-}
-
-void Logger::Assert(bool condition, const WCHAR* message, const WCHAR* fileName, int line)
-{
-	if (condition == true)
-	{
-		return;
-	}
-
-	LogMessage(message, fileName, line);
-	LogWSAError();
-	RaiseCrash();
-}
-
-void Logger::LogF(const WCHAR* formatMessage, ...)
-{
-	WCHAR completeMessage[LOG_MESSAGE_MAX_LENGTH * 2];
-	WCHAR dayInfo[DAY_INFO_BUFFER_LENGTH];
-	size_t logLength = 0;
-	bool retWriteFile = false;
+	WCHAR completedMessage[LOG_MESSAGE_MAX_LENGTH];
 
 	va_list ap;
 	va_start(ap, formatMessage);
 	{
-		GET_DAY_INFO(dayInfo);
-
-		vswprintf(completeMessage, LOG_MESSAGE_MAX_LENGTH * 2, formatMessage, ap);
+		StringCchVPrintfW(completedMessage, LOG_MESSAGE_MAX_LENGTH, formatMessage, ap);
 	}
 	va_end(ap);
 
-	LogMessage(completeMessage);
+	Logger::LogMessage(logLevel, completedMessage);
 }
 
-void Logger::getCurrentTimeInfo(WCHAR* buffer, size_t bufferSize)
+void Logger::getCurrentTimeInfo(WCHAR* outBuffer)
 {
-	if (bufferSize != DAY_INFO_BUFFER_LENGTH * 2)
-	{
-		wprintf(L"getCurrentTimeInfo() ERROR : dayInfo buffer length is %d\n", (int)bufferSize);
-		RaiseCrash();
-	}
-
 	time_t startTime = time(nullptr);
 	tm localTime;
 	localtime_s(&localTime, &startTime);
@@ -165,7 +92,7 @@ void Logger::getCurrentTimeInfo(WCHAR* buffer, size_t bufferSize)
 	int hh = localTime.tm_hour;
 	int mm = localTime.tm_min;
 	int ss = localTime.tm_sec;
-	wsprintfW(buffer, L"%04d%02d%02d_%02d%02d%02d", YYYY, MM, DD, hh, mm, ss);
+	StringCchPrintfW(outBuffer, DAY_INFO_BUFFER_LENGTH, L"%04d%02d%02d_%02d%02d%02d", YYYY, MM, DD, hh, mm, ss);
 }
 
 #pragma warning(push)
@@ -183,7 +110,7 @@ Logger::Logger()
 
 	// get logFileName
 	WCHAR dayInfo[DAY_INFO_BUFFER_LENGTH];
-	GET_DAY_INFO(dayInfo);
+	getCurrentTimeInfo(dayInfo);
 
 	// get process path
 	DWORD dwPID = GetCurrentProcessId();
