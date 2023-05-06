@@ -16,9 +16,10 @@ typedef void* HANDLE;
 
 enum class ELogLevel
 {
+	Test = 0,
 	Debug = 1,
-	Error = 2,
 	System = 10,
+	Error = 99,
 	Assert,
 };
 
