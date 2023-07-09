@@ -1,12 +1,13 @@
 #include "Logger.h"
 #include <Windows.h>
 #include <process.h>
+#include <iostream>
 
 unsigned int WriteThread(void* param)
 {
 	for (int i = 0; i < 1000; ++i)
 	{
-		LOGF(ELogLevel::System, L"I am Thread %d", GetCurrentThreadId());
+		LOGFL(ELogLevel::System, L"I am Thread %u", GetCurrentThreadId());
 	}
 
 	return 0;
@@ -14,8 +15,6 @@ unsigned int WriteThread(void* param)
 
 void LogLevelTest()
 {
-	setlocale(LC_ALL, "korean");
-
 	Logger::SetLogLevel(ELogLevel::System);
 
 	for (int i = 0; i < 10; ++i)
